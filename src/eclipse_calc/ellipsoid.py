@@ -8,6 +8,7 @@ those four callers don't each carry their own copy.
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 from numpy import arcsin, arctan, arctan2, cos, deg2rad, rad2deg, sin, sqrt, tan
 
@@ -67,7 +68,11 @@ def ksieta_to_latlon(
         zeta1 = 0
         zeta = 0
     else:
-        zeta1 = sqrt(1 - ksi**2 - eta1**2)
+        # ksi/eta points off the shadow ellipse give 1 - ksi^2 - eta1^2 < 0;
+        # NaN is the correct "not on the ellipse" result here, not an error
+        # (e.g. expected while a contact-time search scans outside the shadow).
+        with np.errstate(invalid="ignore"):
+            zeta1 = sqrt(1 - ksi**2 - eta1**2)
         zeta = rho2 * (zeta1 * cosd1d2 - eta1 * sind1d2)
 
     phi1 = arcsin(eta1 * cosd1 + zeta1 * sind1)

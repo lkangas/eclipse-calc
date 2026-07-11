@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 
 import numpy as np
 import pandas as pd
 from skyfield.timelib import Time
 
 from ._time import ensure_vector_time
+from .contacts import eclipsed, find_contact_times, find_maximum_time
 from .ellipsoid import aux1_elements
 from .elements import bessels_at
 from .ephemeris import EphemerisSource, load_ephemeris
 from .observer import local_elements
-from .types import Location
+from .types import ContactTimes, Location
 
 
 class BesselianEclipse:
@@ -82,3 +83,18 @@ class BesselianEclipse:
             Bat = local_elements(Bat, location, append=True)
 
         return Bat
+
+    def maximum_time(self, location: Location) -> Time:
+        """Time of maximum eclipse for ``location``."""
+        return find_maximum_time(self.elements_at, self.t0, location)
+
+    def contact_times(self, location: Location) -> ContactTimes:
+        """The four contact times for ``location``."""
+        t_max = self.maximum_time(location)
+        return find_contact_times(self.elements_at, t_max, location)
+
+    def is_eclipsed(
+        self, t: Time, location: Location, kind: Literal["partial", "total", "annular"]
+    ) -> pd.Series:
+        """Whether ``location`` is inside the shadow at Time(s) ``t``."""
+        return eclipsed(self.elements_at(t, location=location), kind=kind)

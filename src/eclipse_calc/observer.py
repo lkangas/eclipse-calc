@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 from numpy import arctan, cos, deg2rad, sin, sqrt, tan
 from skyfield.toposlib import wgs84
@@ -37,7 +38,10 @@ def local_elements(B: pd.DataFrame, location: Location, *, append: bool = True) 
     ) * cos(theta_rad)
 
     eta1 = eta / B.rho1
-    zeta1 = sqrt(1 - ksi**2 - eta1**2)
+    # See ellipsoid.ksieta_to_latlon: NaN is the expected result when the
+    # observer is off the shadow ellipse, not an error.
+    with np.errstate(invalid="ignore"):
+        zeta1 = sqrt(1 - ksi**2 - eta1**2)
 
     L1 = B.l1 - zeta * B.tanf1
     L2 = B.l2 - zeta * B.tanf2
