@@ -5,6 +5,9 @@
 finals2000A.all
 .skyfield-cache/
 
+# generated example output
+examples/*.png
+
 # python
 __pycache__/
 *.pyc

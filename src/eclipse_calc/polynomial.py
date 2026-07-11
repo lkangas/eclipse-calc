@@ -130,5 +130,5 @@ class BesselianEclipse:
         return _shadow_contact_times(self.elements_at, self.t0, shadow, radius_days)
 
     def terminator_events(self) -> pd.DataFrame:
-        """The ten whole-path contact events (penumbral, umbral, central)."""
+        """The whole-path contact events (penumbral, umbral, central) that occur."""
         return _terminator_events(self.elements_at, self.t0)
