@@ -9,6 +9,7 @@ import pandas as pd
 from skyfield.timelib import Time
 
 from ._time import ensure_vector_time
+from .central_line import central_duration_width, central_elements
 from .contacts import eclipsed, find_contact_times, find_maximum_time
 from .ellipsoid import aux1_elements
 from .elements import bessels_at
@@ -98,3 +99,13 @@ class BesselianEclipse:
     ) -> pd.Series:
         """Whether ``location`` is inside the shadow at Time(s) ``t``."""
         return eclipsed(self.elements_at(t, location=location), kind=kind)
+
+    def central_line(self, t: Time) -> pd.DataFrame:
+        """Central-line lat/lon, duration, and width at Time(s) ``t``."""
+        Bat = self.elements_at(t, derivatives=True)
+        result = central_elements(Bat, append=True)
+
+        derivs = Bat[[c for c in Bat.columns if c.startswith("d_")]].rename(
+            columns=lambda c: c[2:]
+        )
+        return result.join(central_duration_width(result, derivs))
