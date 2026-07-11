@@ -84,7 +84,10 @@ def ksieta_to_latlon(
 
     theta_deg = rad2deg(theta)
     lat_deg = rad2deg(phi)
-    lon_deg = theta_deg - B["mu0"]
+    # mu0 (Greenwich hour angle of the shadow axis) isn't bounded to a single
+    # revolution, so the raw difference can land outside [-180, 180) -- wrap
+    # it to a normal longitude range.
+    lon_deg = ((theta_deg - B["mu0"] + 180) % 360) - 180
 
     data = dict(
         ksi=ksi, eta=eta, eta1=eta1, zeta1=zeta1, zeta=zeta,

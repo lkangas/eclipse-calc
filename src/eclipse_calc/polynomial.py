@@ -17,6 +17,9 @@ from .ephemeris import EphemerisSource, load_ephemeris
 from .observer import local_elements
 from .shadow import shadow_limits as _shadow_limits
 from .shadow import shadow_outlines as _shadow_outlines
+from .terminator import ShadowKind
+from .terminator import shadow_contact_times as _shadow_contact_times
+from .terminator import terminator_events as _terminator_events
 from .types import ContactTimes, Location
 
 
@@ -121,3 +124,11 @@ class BesselianEclipse:
         """North/south limit-line points (umbral or penumbral) at Time(s) ``t``."""
         Bat = self.elements_at(t, derivatives=True)
         return _shadow_limits(Bat, umbra=umbra)
+
+    def shadow_contact_times(self, shadow: ShadowKind, radius_days: float = 4 / 24):
+        """Whole-path contact times for the shadow's outer/inner edge."""
+        return _shadow_contact_times(self.elements_at, self.t0, shadow, radius_days)
+
+    def terminator_events(self) -> pd.DataFrame:
+        """The ten whole-path contact events (penumbral, umbral, central)."""
+        return _terminator_events(self.elements_at, self.t0)
