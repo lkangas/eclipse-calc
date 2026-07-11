@@ -43,6 +43,11 @@ contacts = eclipse.contact_times(zaragoza)
 print(contacts)
 ```
 
+See [`docs/API.md`](docs/API.md) for the full API reference (every public
+function/class, what each `DataFrame` column means, and known limitations),
+and [`examples/spain_2026.py`](examples/spain_2026.py) for a complete
+end-to-end example.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
