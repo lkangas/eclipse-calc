@@ -1,0 +1,20 @@
+# ephemeris kernels (large binary, not source)
+*.bsp
+
+# downloaded IERS Earth-rotation data
+finals2000A.all
+.skyfield-cache/
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
