@@ -54,6 +54,34 @@ def test_umbral_limits_are_north_and_south_of_the_central_line(eclipse, timescal
     assert lats[0] < central.lat.iloc[0] < lats[1]
 
 
+def test_south_limit_converges_independently_of_north_failure(eclipse, timescale):
+    """Regression test: shadow_limits used to declare `L` once outside the
+    `for offset in (0, pi)` loop instead of resetting it per offset. When
+    the first offset (north) failed to converge -- expected and correct
+    this close to this event's sunset cusp, the north limit genuinely
+    stops existing from 18:31 UT onward -- the resulting NaN leaked into
+    `L` for the second offset (south)'s starting point, spuriously
+    failing it too, even though south converges cleanly on its own.
+    Reference values: ytliu.epizy.com's independently-published south
+    limit for these two minutes (PYTHON_REVIEW_BRIEF.md Sec 0)."""
+    cases = [
+        # (hour, minute, ref_s_lat, ref_s_lon)
+        (18, 31, 41.5517, -5.8850),
+        (18, 32, 40.7233, -4.1417),
+    ]
+    for hour, minute, ref_s_lat, ref_s_lon in cases:
+        t = timescale.utc(2026, 8, 12, hour, minute, 0)
+        limits = eclipse.shadow_limits(t, umbra=True)
+        assert "S_lat" in limits.columns and limits["S_lat"].notna().all(), (
+            f"south limit failed to converge at 18:{minute} -- "
+            "regression of the L-not-reset-per-offset bug"
+        )
+        assert limits.S_lat.iloc[0] == pytest.approx(ref_s_lat, abs=0.02)
+        assert limits.S_lon.iloc[0] == pytest.approx(ref_s_lon, abs=0.02)
+        # North is expected to genuinely not exist this close to the
+        # sunset cusp -- its absence here is correct, not a bug.
+
+
 def test_penumbral_shadow_limits_does_not_crash(eclipse, timescale):
     """umbra=False is not independently validated (see shadow.py's
     docstring) and can legitimately drop a non-converging tangent

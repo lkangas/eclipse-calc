@@ -112,7 +112,10 @@ def shadow_limits(
     prefix is simply absent for a given time if that tangent point's
     iteration didn't converge (see the ``umbra=False`` note below) --
     rather than writing out a value that isn't actually on the shadow
-    ellipse.
+    ellipse. The north and south tangent-point searches are independent
+    of each other (each gets its own fresh initial guess): one failing
+    to converge -- e.g. the north limit genuinely ceasing to exist near
+    a sunset-limited event's terminal cusp -- never affects the other.
 
     ``B`` must carry :func:`eclipse_calc.ellipsoid.aux1_elements`'s
     columns and analytic derivatives (``d_x``, ``d_y``, ``d_mu0``,
@@ -144,10 +147,10 @@ def shadow_limits(
         d_d_dt_rad = deg2rad(row.d_d)
         sec2f = 1 + row[tanf_col] ** 2
 
-        L = row[l_col]  # initial guess, zeta = 0
         q1 = arctan(rb / rc)  # unnecessary initial guess, given the quick convergence
 
         for offset in (0, pi):
+            L = row[l_col]  # initial guess, zeta = 0 -- reset per offset, not shared
             q = q1 + offset
 
             ksi = row.x - L * sin(q)
