@@ -15,6 +15,8 @@ from .ellipsoid import aux1_elements
 from .elements import bessels_at
 from .ephemeris import EphemerisSource, load_ephemeris
 from .observer import local_elements
+from .shadow import shadow_limits as _shadow_limits
+from .shadow import shadow_outlines as _shadow_outlines
 from .types import ContactTimes, Location
 
 
@@ -109,3 +111,13 @@ class BesselianEclipse:
             columns=lambda c: c[2:]
         )
         return result.join(central_duration_width(result, derivs))
+
+    def shadow_outline(self, t: Time, *, umbra: bool = True, points: int = 60) -> pd.DataFrame:
+        """The shadow footprint polygon (umbral or penumbral) at Time(s) ``t``."""
+        Bat = self.elements_at(t, derivatives=False)
+        return _shadow_outlines(Bat, points=points, umbra=umbra)
+
+    def shadow_limits(self, t: Time, *, umbra: bool = True) -> pd.DataFrame:
+        """North/south limit-line points (umbral or penumbral) at Time(s) ``t``."""
+        Bat = self.elements_at(t, derivatives=True)
+        return _shadow_limits(Bat, umbra=umbra)
