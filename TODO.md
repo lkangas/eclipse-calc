@@ -7,13 +7,15 @@ simply missing (this file is the latter).
 ## Lunar limb calculations
 
 The Moon's limb is not a smooth circle -- it's mountains and valleys, and
-the true profile matters for two things:
+the true profile matters for three things:
 
 - **Contact-time corrections.** 2nd/3rd contact times can shift by up to
   ~2 seconds from the mean-limb prediction depending on which part of the
   limb is involved (see Explanatory Supplement 3rd ed. Sec. 11.1.2, and
   Herald 1983, JBAA 93, 241-246). Currently averaged out / not implemented.
 - **Baily's beads** (below), which the limb profile physically causes.
+- **The shape of the shadow outline itself** (below) -- currently a smooth
+  circle/ellipse, not the true irregular footprint.
 
 Needs: a lunar limb-profile data source (e.g. Watts' 1963 charts, or a
 profile derived from modern LOLA/Kaguya topography) giving limb radius as
@@ -44,9 +46,9 @@ Candidate sources, classical to modern:
   Investigation on the Lunar Reconnaissance Orbiter Mission." Space Sci.
   Rev. 150, 209-241. Current gold-standard lunar topography.
 - Jubier, X. (2017). "Syzygy Information: Lunar Limb Profiles at Total
-  Eclipses of the Decade." DPS abstract #417.17. Uses Kaguya+LOLA to
-  predict Baily's beads (not just contact-time corrections) to ~0.2 s --
-  the closest real-world precedent for the simulation item below.
+  Eclipses of the Decade." DPS poster/abstract #417.17. Uses Kaguya+LOLA
+  to predict Baily's beads (not just contact-time corrections) to ~0.2 s
+  -- the closest real-world precedent for the simulation item below.
 
 Reported accuracy (NASA, eclipse.gsfc.nasa.gov/SEhelp/limb.html): no
 correction => 2-3 s contact-time error; Watts+Morrison/Appleby => better
@@ -62,3 +64,20 @@ position angles, individual appearance/disappearance times and duration,
 and the diamond-ring effect as the last/first bead.
 
 Depends on lunar limb calculations above.
+
+## Limb-corrected shadow outline
+
+`shadow.shadow_outlines` currently sweeps position angle Q at a *constant*
+shadow-cone radius (`L_i = l_i - zeta*tan(f_i)`, per ES Eq. 11.104) for
+each instant -- the Moon is treated as a perfect circle, so whatever
+irregularity the outline has today comes only from the ellipsoid
+projection, not the Moon's actual shape. With the limb profile from
+"Lunar limb calculations" above, the radius used at each Q should instead
+be corrected for the limb height in that direction (rotated for
+libration/parallactic orientation as seen from the shadow axis), giving
+the umbral/penumbral footprint its true irregular, near-polygonal shape --
+most visible for narrow/grazing paths and near the ends of a track, where
+the smooth-limb approximation is worst.
+
+Depends on lunar limb calculations above; same data source, applied to
+`shadow.shadow_outlines` instead of contact times / local circumstances.
