@@ -20,6 +20,14 @@ profile derived from modern LOLA/Kaguya topography) giving limb radius as
 a function of position angle and libration, combined with the existing
 Besselian/local-circumstance geometry.
 
+Note: the Explanatory Supplement itself only *flags* this gap (Sec. 11.1.2,
+11.2.4.1, 11.3.6.2) -- each mention is one line pointing to Herald (1983)
+for the actual method; ES carries no limb-profile data or correction
+formulas of its own. "Baily's beads" isn't named anywhere in the chapter.
+The real source material is Herald 1983 or a modern equivalent (e.g.
+Xavier Jubier's LOLA/Kaguya-based limb-profile work used by current
+occultation/eclipse-timing tools).
+
 ## Baily's beads simulation
 
 Given local circumstances at an observer (contact geometry; note
