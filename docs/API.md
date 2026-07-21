@@ -627,3 +627,6 @@ shadow axis itself* (`ksi = eta = 0`).
 - **`BesselianEclipse`'s polynomial fit degrades outside its
   `hour_span_coarse` window.** Widen it if you need accurate results far
   from `t0` (e.g. a multi-day terminator-event search).
+- **Lunar limb irregularities (and Baily's beads, which they cause) are
+  not modeled** — the Moon is treated as a perfect circle. See
+  [`TODO.md`](../TODO.md).
