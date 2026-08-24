@@ -4,6 +4,89 @@ Planned features not yet implemented. See `docs/API.md`'s "Known
 limitations" section for what's already present but incomplete vs. what's
 simply missing (this file is the latter).
 
+## Eclipse occurrence and search
+
+Nothing in the package finds an eclipse. `BesselianEclipse` is anchored
+at a `t0` the caller must already know, so every entry point sits
+downstream of a date supplied by hand: the ephemeris is never asked
+*whether* an eclipse happens, only what its geometry is once it's been
+told that one does. There is no way to sweep a span of years and get
+back the eclipses in it.
+
+The geocentric occurrence tests of Explanatory Supplement 3rd ed.
+Sec. 11.2 close that gap, and need nothing the package doesn't already
+have -- an ephemeris, apparent Sun/Moon places, and `constants`:
+
+- **Least angular separation at syzygy.** `sigma = beta_m cos I'`, with
+  `tan I' = lambda/(lambda - 1) * tan I` and `lambda` the ratio of the
+  Moon's to the Sun's motion in ecliptic longitude (Eqs. 11.1,
+  11.7-11.9). Taking `I` as the local slope `d(beta)/d(lon)` at the
+  syzygy, rather than the mean 5.145 deg, keeps it self-consistent with
+  how `beta_m` itself is obtained and absorbs perturbation and
+  nodal-regression effects.
+- **Solar conditions.** Partial if `sigma < s_s + s_m + pi_m - pi_s`
+  (11.21); central if `sigma < |s_s - s_m + pi_m - pi_s|` (11.23);
+  total vs. annular by comparing `s_m` against `s_s`. Hybrids are not
+  decidable from occurrence alone -- the book says as much, and the
+  central-line machinery already here is what settles them.
+- **Lunar conditions.** Earth shadow-cone semidiameters `f1`, `f2` from
+  the reduced parallax `pi_1 = 0.998340 * pi_m` and the 1.02
+  atmospheric enlargement (11.10-11.12), then penumbral/partial/total
+  by the same `sigma` comparison (11.13-11.15).
+
+Needs: a syzygy search (new/full moons in geocentric ecliptic
+longitude), plus geocentric semidiameters and horizontal parallaxes --
+themselves a documented gap (see `docs/API.md`).
+
+This fits the existing conventions without straining them: a
+`DataFrame` indexed by UTC datetime, one row per syzygy, scalar or
+vector `Time` accepted, nothing downloaded. Two things worth getting
+right:
+
+- **Sweep in one vectorized pass.** A per-syzygy loop costs several
+  ephemeris evaluations each, and a catalogue-length span runs to tens
+  of thousands of syzygies. Skyfield takes a vector `Time`; the whole
+  span should be a handful of calls, which is also what the
+  `DataFrame`-per-call shape wants.
+- **One set of radii.** Take the lunar semidiameter from
+  `constants.k1` and the solar from `ds` rather than introducing
+  separate kilometre radii. `k1` matches Sec. 11.1.2's single-`k`
+  convention; an independent 1737.4 km Moon differs by ~0.04% in
+  `s_m`, which only shows up on borderline classifications, but there
+  is no reason to carry two conventions.
+
+Validate against a published catalogue of eclipse dates and types
+rather than against geometry from within the package -- the existing
+tests are all anchored on a single event, and occurrence is the first
+thing here that can be checked across hundreds of them.
+
+Independent of the limb work below; nothing in that chain blocks this.
+
+Open question: the package describes itself as solar eclipse geometry,
+but the lunar conditions above share nearly all of the same machinery,
+and dropping them would leave the module half-written for the sake of
+the title.
+
+## Eclipse seasons
+
+Falls out of occurrence once the quantities above exist, and is the
+natural way to answer "when could the next one be" rather than "was
+this one an eclipse". Two things that are easy to conflate and are
+worth separating in the API:
+
+- a **node crossing** is the Moon crossing the ecliptic (`beta_m = 0`),
+  about 27 times a year;
+- a **season centre** is the *Sun* passing one of the Moon's slowly
+  regressing nodes, about twice a year, and it is what an eclipse
+  season is centred on.
+
+The window half-width around a centre follows from the same limits as
+the occurrence tests, converted through the Sun's rate of motion in
+longitude -- using the Moon's rate answers a different question and
+gives a window roughly 13x too narrow.
+
+Depends on eclipse occurrence above.
+
 ## Lunar limb calculations
 
 The Moon's limb is not a smooth circle -- it's mountains and valleys, and
